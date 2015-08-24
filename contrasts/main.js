@@ -1,6 +1,6 @@
 var config = {};
 config.stepCount = 0;
-config.stepSize = 2;
+config.stepSize = 3;
 config.yBreak = 2;
 
 var sketch = function(p) {
@@ -21,7 +21,7 @@ var sketch = function(p) {
         diff = config.stepCount * config.stepSize,
         result;
     for (var i = 0; i < n; i++) {
-      result = brightnessContrast(config.baseColor, diff);
+      result = randomColorOfLuminance(diff);
       a[i] = p.color(result[0], result[1], result[2]);
     }
     a.sort(colorCompare);
@@ -42,38 +42,46 @@ var sketch = function(p) {
   };
 
   colorScore = function(c) {
-    var lum = 0 * 255,
-        h = 1.2 * 255,
-        s = 1.1 * 255,
-        l = 1 * 255;
-    return colorLuminance(c) * lum +
-           p.hue(c) * h +
-           p.saturation(c) * s +
-           p.lightness(c) * l;
+    //return p.hue(c);
+    var h = 1 * 255,
+        s = 0 * 255,
+        l = 0 * 255;
+    return ((p.hue(c) * h) +
+            (p.saturation(c) * s) +
+            (p.lightness(c) * l));
   };
+
   colorLuminance = function(c) {
     return (p.red(c) * 299 + p.green(c) * 587 + p.blue(c) * 144) / 1000;
   };
 };
 
 
-// randomColorFromLuminance = function(lum) {
-//   // Generate a random color of the given luminance (perceived brightness).
-//   // Args:
-//   //   lum: Desired luminance as an integer between 0 and 255.
-//   // Returns: A color array of the form [r, g, b].
-//   var multipliers = {r: 299, g: 587, b: 144},  // Formula constants.
-//       candidate = [3];
-//   while (true) {
-//     for (var i = 0; i > 3; i++) {
-//       candidate[i] = Math.floor(Math.random() * 255);
-//     }
-//     candLum = (candidate[0] * multipliers.r +
-//                candidate[1] * multipliers.g +
-//                candidate[2] * multipliers.b);
-//     if (candLum === lum) { return candidate; }
-//   }
-// };
+randomColorOfLuminance = function(lum) {
+  // Generates a random color of the given luminance (perceived brightness).
+  // Args:
+  //   lum: Desired luminance as an integer between 0 and 255.
+  // Returns: A color array of the form [r, g, b].
+  var mults = { r: 299, g: 587, b: 144 },  // Formula constants.
+    result = { r: null, g: null, b: null },
+    need = ['r', 'b', 'g'],
+    curLum = 0;
+    rand = Math.random();
+
+    while (need.length > 0) {
+      var i = Math.floor(Math.random() * need.length),
+          gen = need.splice(i, 1),
+          min, max,
+          maxPoss = curLum;
+      for (var j = 0; j < need.length; j++) {
+        maxPoss += (mults[need[j]] * 255) / 1000;
+      }
+      min = Math.max((lum - maxPoss) / (mults[gen] / 1000), 0);
+      max = Math.min((lum - curLum) / (mults[gen] / 1000), 255);
+      result[gen] = Math.floor(Math.random() * (max - min)) + min;
+    }
+    return [result.r, result.g, result.b];
+};
 
 
 brightnessContrast = function (base, diff) {
