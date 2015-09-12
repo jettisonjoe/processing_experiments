@@ -3,20 +3,15 @@ var sketch = function( p ) {
 
   var particles = [];
   var maxParticles = 2000;
-  var center;
+  var emitter;
   var vel = 2;
-  var tick = 0;
-  var tickStep = 0.001;
-
-
-  var noiseScale = 0.001;
-  var eps = 1;
 
 
   p.setup = function() {
     p.createCanvas(window.innerWidth-20, window.innerHeight-20);
-    center = p.createVector((window.innerWidth-20)/2,
+    emitter = p.createVector((window.innerWidth-20)/2,
                             (window.innerHeight-20)/2);
+    p.background(0);
   };
 
 
@@ -24,29 +19,31 @@ var sketch = function( p ) {
     p.background(0);
     p.stroke(255);
     if (particles.length < maxParticles) {
-      particles.push(center.copy());
+      particles.push(emitter.copy());
     }
     for (var i = 0; i < particles.length; i++) {
       var a = particles[i];
       wrap(a);
       var b = a.copy();
-      var v = curl(a.x, a.y, tick).setMag(vel);
+      var v = curl(a.x + 100, a.y + 100, p.frameCount).setMag(vel);
       a.add(v);
       p.line(b.x, b.y, a.x, a.y);
     }
-    tick += tickStep;
   };
 
 
   function curl(x, y, t) {
-    var n1, n2, a, b;
+    var noiseScale = 0.001,
+        tScale = 0.001,
+        eps = 1,
+        n1, n2, a, b;
 
-    n1 = p.noise(x * noiseScale, (y + eps) * noiseScale, t);
-    n2 = p.noise(x * noiseScale, (y - eps) * noiseScale, t);
+    n1 = p.noise(x * noiseScale, (y + eps) * noiseScale, t * tScale);
+    n2 = p.noise(x * noiseScale, (y - eps) * noiseScale, t * tScale);
     a = (n1 - n2)/(2 * eps);
 
-    n1 = p.noise((x + eps) * noiseScale, y * noiseScale, t);
-    n2 = p.noise((x - eps) * noiseScale, y * noiseScale, t);
+    n1 = p.noise((x + eps) * noiseScale, y * noiseScale, t * tScale);
+    n2 = p.noise((x - eps) * noiseScale, y * noiseScale, t * tScale);
     b = (n1 - n2)/(2 * eps);
 
     return p.createVector(a, -b);
